@@ -1,4 +1,4 @@
-# 📘 Node.js Clean Architecture Template - Project Setup Guide
+# Node.js Clean Architecture Template - Project Setup Guide
 
 ## Building Enterprise-Grade REST APIs with Node.js + Express + Prisma
 
@@ -9,7 +9,7 @@
 
 ---
 
-## 🎯 Table of Contents
+## Table of Contents
 
 1. [Introduction](#introduction)
 2. [Why This Architecture?](#why-this-architecture)
@@ -26,7 +26,7 @@
 
 ---
 
-## 📖 Introduction
+## Introduction
 
 This guide will help you build a structured Node.js REST API using Clean Architecture principles.
 
@@ -70,7 +70,7 @@ Before starting, ensure you have:
 
 ---
 
-## 🤔 Why This Architecture?
+## Why This Architecture?
 
 ### The Problem with Monolithic Code
 
@@ -145,10 +145,10 @@ export function makeUserService({ userRepository, mailerService, logger }) {
 
 **Benefits:**
 
-- ✅ Easy to test (mock dependencies)
-- ✅ Easy to reuse (call service from anywhere)
-- ✅ Easy to maintain (business logic in one place)
-- ✅ Easy to scale (loose coupling, swap implementations)
+- Easy to test (mock dependencies)
+- Easy to reuse (call service from anywhere)
+- Easy to maintain (business logic in one place)
+- Easy to scale (loose coupling, swap implementations)
 
 ### Key Principles Explained
 
@@ -175,7 +175,7 @@ export function makeUserService({ userRepository, mailerService, logger }) {
 
 ---
 
-## 🏗️ Architecture Philosophy
+## Architecture Philosophy
 
 ### The Four Layers
 
@@ -219,7 +219,7 @@ export function makeUserService({ userRepository, mailerService, logger }) {
 
 ---
 
-## 🚀 Project Setup from Scratch
+## Project Setup from Scratch
 
 ### Step 1: Initialize Project
 
@@ -367,7 +367,7 @@ EOF
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 my-awesome-api/
@@ -426,7 +426,7 @@ my-awesome-api/
 
 ---
 
-## 🔨 Core Implementation Guide
+## Core Implementation Guide
 
 ### 1. Environment Configuration
 
@@ -4645,98 +4645,24 @@ A:
 
 ---
 
-## 📞 Support and Community
-
-### Getting Help
-
-- **Documentation**: You're reading it! 📖
-- **GitHub Issues**: Report bugs or request features
-- **Stack Overflow**: Tag questions with `node.js`, `express`, `prisma`
-- **Prisma Discord**: https://pris.ly/discord
-- **Node.js Discord**: https://discord.gg/nodejs
-
-### Contributing
-
-Want to improve this template?
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Create a pull request
-
-### License
-
-MIT License - Use freely in commercial and personal projects
-
----
-
-## 🎓 Additional Resources
-
-### Books
-
-- **Clean Architecture** by Robert C. Martin
-- **Node.js Design Patterns** by Mario Casciaro
-- **The Pragmatic Programmer** by Hunt & Thomas
-
-### Courses
-
-- **Node.js - The Complete Guide** (Udemy)
-- **Learn Node.js** (nodejs.dev)
-- **Prisma Crash Course** (YouTube)
-
-### Blogs & Articles
-
-- [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices)
-- [Bulletproof Node.js](https://dev.to/santypk4/bulletproof-node-js-project-architecture-4epf)
-- [The Twelve-Factor App](https://12factor.net/)
-
 ### Tools
 
 - **Postman**: API testing
-- **Insomnia**: API client
-- **TablePlus**: Database GUI
-- **VS Code Extensions**:
-  - Prisma
-  - ESLint
-  - Prettier
-  - REST Client
+- **pgAdmin**: Database GUI
 
 ---
 
 ## 📝 Changelog
 
-### Version 2.0 (October 13, 2025)
+### Version 1.0 (October 13, 2025)
 
-- ✅ Added comprehensive Swagger documentation
-- ✅ Added testing strategy and examples
-- ✅ Added troubleshooting guide
-- ✅ Enhanced best practices with rationale
-- ✅ Added FAQ section
-- ✅ Improved architecture explanations
-- ✅ Added more code examples
-
-### Version 1.0 (Initial Release)
-
-- ✅ Basic project structure
-- ✅ Core implementation guide
-- ✅ Deployment instructions
-
----
-
-**Happy Building! 🚀**
-
-This template is designed to scale from prototype to production. Start simple, add features as needed, and always prioritize code quality and security.
-
-_Remember: Good architecture is not about following rules blindly, but understanding the trade-offs and making informed decisions for your specific project._
-
----
-
-**Made with ❤️ for the Node.js community**
-
-If this template helped you, consider:
-
-- ⭐ Starring the repository
-- 🐦 Sharing with your team
-- 💬 Contributing improvements
-- ☕ Buying the maintainer a coffee
+- Added comprehensive Swagger documentation
+- Added testing strategy and examples
+- Added troubleshooting guide
+- Enhanced best practices with rationale
+- Added FAQ section
+- Improved architecture explanations
+- Added more code examples
+- Basic project structure
+- Core implementation guide
+- Deployment instructions
