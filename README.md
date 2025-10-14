@@ -2,12 +2,10 @@
 
 ## Building Enterprise-Grade REST APIs with Node.js + Express + Prisma
 
-**Template Version**: 2.0  
-**Last Updated**: October 13, 2025  
-**Ideal For**: Teams of 4-8 developers building scalable backend APIs  
-**License**: MIT
+**Template Version**: 1.0  
+**Last Updated**: October 13, 2025
 
-> **📌 Note**: This is a project-agnostic template. Use this as a foundation for any Node.js backend project, whether it's e-commerce, SaaS, internal tools, or asset management systems.
+> **Note**: This is a project-agnostic template. This is just a foundational template.
 
 ---
 
@@ -30,7 +28,7 @@
 
 ## 📖 Introduction
 
-This guide will help you build a production-ready Node.js REST API using Clean Architecture principles. Whether you're building an e-commerce platform, SaaS application, asset management system, or internal tool, this template provides a battle-tested foundation.
+This guide will help you build a structured Node.js REST API using Clean Architecture principles.
 
 ### What You'll Build
 
@@ -41,11 +39,10 @@ A scalable, maintainable REST API with:
 - **Type-Safe Validation**: Request/response validation with Zod
 - **Robust Authentication**: JWT with refresh tokens and proper security
 - **Database Migrations**: Version-controlled schema changes with Prisma
-- **Structured Logging**: Production-ready logging with Pino + request tracing
+- **Structured Logging**: structured logging with Pino + request tracing
 - **Error Handling**: Centralized error management with proper status codes
 - **File Uploads**: Secure file handling with Multer + Sharp
 - **API Documentation**: Interactive Swagger/OpenAPI documentation
-- **Security**: OWASP best practices (Helmet, CORS, rate limiting)
 - **Graceful Shutdown**: Proper cleanup of resources on shutdown
 
 ### Tech Stack
@@ -69,8 +66,6 @@ Before starting, ensure you have:
 - **Node.js 18.x or higher** installed ([Download](https://nodejs.org/))
 - **PostgreSQL 14.x or higher** installed and running
 - **npm 9.x or higher** (comes with Node.js)
-- Basic understanding of JavaScript ES6+, Promises, and async/await
-- Familiarity with REST API concepts
 - A code editor (VS Code recommended)
 
 ---
@@ -112,7 +107,6 @@ app.post("/api/users", async (req, res) => {
 ### The Clean Architecture Solution
 
 ```javascript
-// ✅ GOOD: Separated concerns
 // Route handler (thin, just HTTP concerns)
 router.post("/", validate(createUserSchema), async (req, res, next) => {
   try {
@@ -159,20 +153,17 @@ export function makeUserService({ userRepository, mailerService, logger }) {
 ### Key Principles Explained
 
 1. **Separation of Concerns**: Each layer has one job
-
    - Controllers handle HTTP requests/responses
    - Services contain business logic
    - Repositories handle data access
    - Infrastructure handles external services
 
 2. **Dependency Injection**: Dependencies are injected, not imported
-
    - Makes testing easier (inject mocks)
    - Makes swapping implementations easier
    - Makes dependencies explicit
 
 3. **Factory Pattern**: Use functions to create objects
-
    - Better than classes for dependency injection
    - More functional programming style
    - Easier to understand
@@ -403,6 +394,7 @@ my-awesome-api/
 │   │           └── users.validator.js
 │   ├── config/
 │   │   └── index.js          # Environment validation
+|   ├── utils/
 │   ├── core/
 │   │   ├── errors/
 │   │   │   └── httpErrors.js # Custom error classes
@@ -1815,11 +1807,11 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 **The Solution: Swagger/OpenAPI**
 
-- ✅ Interactive API documentation
-- ✅ Test endpoints directly in browser
-- ✅ Auto-generated from code comments
-- ✅ Always up-to-date
-- ✅ Standard format (OpenAPI 3.0)
+- Interactive API documentation
+- Test endpoints directly in browser
+- Auto-generated from code comments
+- Always up-to-date
+- Standard format (OpenAPI 3.0)
 
 ### Step 1: Install Dependencies
 
@@ -3452,43 +3444,7 @@ JWT_REFRESH_SECRET=test-refresh-secret-32-chars
 
 ---
 
-## 🎯 Best Practices
-
-### 1. Security Checklist
-
-- ✅ Use environment variables for secrets
-- ✅ Hash passwords with bcrypt (10+ rounds)
-- ✅ Use JWT with short expiration (15 minutes)
-- ✅ Implement refresh tokens
-- ✅ Add rate limiting on auth endpoints
-- ✅ Validate all inputs with Zod
-- ✅ Use parameterized queries (Prisma handles this)
-- ✅ Enable CORS with specific origins
-- ✅ Use Helmet for security headers
-- ✅ Implement proper error handling (don't leak stack traces)
-
-### 2. Database Best Practices
-
-- ✅ Use migrations for schema changes
-- ✅ Add indexes on frequently queried fields
-- ✅ Use UUIDs for primary keys
-- ✅ Implement soft deletes
-- ✅ Add audit fields (createdAt, updatedAt, createdBy)
-- ✅ Use transactions for multi-step operations
-- ✅ Limit query results with pagination
-- ✅ Use connection pooling (Prisma default)
-
-### 3. Code Organization
-
-- ✅ One responsibility per function/class
-- ✅ Keep controllers thin (delegate to services)
-- ✅ Business logic stays in services
-- ✅ Data access logic stays in repositories
-- ✅ Use factory functions for dependency injection
-- ✅ Create custom error classes
-- ✅ Centralize configuration
-
-### 4. Error Handling Pattern
+### Error Handling Pattern
 
 ```javascript
 // Always use try-catch in controllers
@@ -3503,7 +3459,7 @@ async someAction(req, res, next) {
 }
 ```
 
-### 5. Logging Pattern
+### Logging Pattern
 
 ```javascript
 // Log at appropriate levels
@@ -3513,9 +3469,9 @@ logger.warn({ issue }, "Potential problem");
 logger.error({ err }, "Error occurred");
 ```
 
-### 6. Environment Variables Pattern
+### Environment Variables Pattern
 
-**❌ DON'T:**
+**DON'T:**
 
 ```javascript
 // Scattered environment access
@@ -3523,7 +3479,7 @@ const dbUrl = process.env.DATABASE_URL;
 const port = process.env.PORT || 3000;
 ```
 
-**✅ DO:**
+**DO:**
 
 ```javascript
 // Centralized, validated config
@@ -3539,9 +3495,9 @@ const port = env.PORT;
 - Easy to see all required config
 - No runtime surprises
 
-### 7. Request Validation Pattern
+### Request Validation Pattern
 
-**❌ DON'T:**
+**DON'T:**
 
 ```javascript
 // Manual validation
@@ -3556,7 +3512,7 @@ router.post("/users", (req, res) => {
 });
 ```
 
-**✅ DO:**
+**DO:**
 
 ```javascript
 // Schema-based validation
@@ -3579,9 +3535,9 @@ router.post("/users", validate(schema), controller.createUser);
 - Type coercion (strings to numbers)
 - Better error messages
 
-### 8. Async Error Handling Pattern
+### Async Error Handling Pattern
 
-**❌ DON'T:**
+**DON'T:**
 
 ```javascript
 // Forgetting try-catch
@@ -3591,7 +3547,7 @@ router.get("/users/:id", async (req, res) => {
 });
 ```
 
-**✅ DO:**
+**DO:**
 
 ```javascript
 // Always use try-catch or pass to next
@@ -3605,9 +3561,9 @@ router.get("/users/:id", async (req, res, next) => {
 });
 ```
 
-### 9. Database Transaction Pattern
+### Database Transaction Pattern
 
-**❌ DON'T:**
+**DON'T:**
 
 ```javascript
 // Multiple operations without transaction
@@ -3625,7 +3581,7 @@ async function transferFunds(fromId, toId, amount) {
 }
 ```
 
-**✅ DO:**
+**DO:**
 
 ```javascript
 // Use transaction
@@ -3644,9 +3600,9 @@ async function transferFunds(fromId, toId, amount) {
 }
 ```
 
-### 10. Pagination Pattern
+### Pagination Pattern
 
-**❌ DON'T:**
+**DON'T:**
 
 ```javascript
 // Return all results
@@ -3656,7 +3612,7 @@ router.get("/users", async (req, res) => {
 });
 ```
 
-**✅ DO:**
+**DO:**
 
 ```javascript
 // Always paginate
@@ -3682,9 +3638,9 @@ router.get("/users", async (req, res) => {
 });
 ```
 
-### 11. Password Handling
+### Password Handling
 
-**❌ DON'T:**
+**DON'T:**
 
 ```javascript
 // Never log or return passwords
@@ -3692,7 +3648,7 @@ logger.info({ user }); // If user has password field!
 res.json({ user }); // If user has passwordHash!
 ```
 
-**✅ DO:**
+**DO:**
 
 ```javascript
 // Always exclude password fields
@@ -3708,7 +3664,7 @@ await prisma.user.create({
 // Or use Prisma middleware to always exclude
 ```
 
-### 12. Rate Limiting Pattern
+### Rate Limiting Pattern
 
 ```javascript
 import rateLimit from "express-rate-limit";
@@ -3737,14 +3693,14 @@ app.use("/api/v1", apiLimiter);
 
 ### 13. Soft Delete Pattern
 
-**❌ DON'T:**
+**DON'T:**
 
 ```javascript
 // Hard delete loses data
 await prisma.user.delete({ where: { id } });
 ```
 
-**✅ DO:**
+**DO:**
 
 ```javascript
 // Soft delete preserves history
@@ -3770,7 +3726,7 @@ const users = await prisma.user.findMany({
 - Relationships preserved
 - Compliance (GDPR, etc.)
 
-### 14. API Versioning
+### API Versioning
 
 ```javascript
 // Support multiple API versions
@@ -3787,7 +3743,7 @@ app.use("/api/v2", v2Router);
 - Gradual migration path
 - Professional API management
 
-### 15. Health Checks
+### Health Checks
 
 ```javascript
 // Comprehensive health check
@@ -3817,7 +3773,7 @@ router.get("/healthz", async (req, res) => {
 
 ---
 
-## 🚀 Production Deployment
+## Production Deployment
 
 ### Environment Setup
 
