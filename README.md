@@ -77,7 +77,7 @@ Before starting, ensure you have:
 Many Node.js projects start simple but become unmaintainable as they grow:
 
 ```javascript
-// ❌ BAD: Everything in one file
+// BAD: Everything in one file
 app.post("/api/users", async (req, res) => {
   try {
     // Validation mixed with business logic
@@ -99,10 +99,10 @@ app.post("/api/users", async (req, res) => {
 
 **Problems:**
 
-- ❌ Hard to test (how do you test email sending without sending emails?)
-- ❌ Hard to reuse (want to create users from CLI? Copy-paste this code?)
-- ❌ Hard to maintain (business rules scattered everywhere)
-- ❌ Hard to scale (tight coupling between layers)
+- Hard to test (how do you test email sending without sending emails?)
+- Hard to reuse (want to create users from CLI? Copy-paste this code?)
+- Hard to maintain (business rules scattered everywhere)
+- Hard to scale (tight coupling between layers)
 
 ### The Clean Architecture Solution
 
@@ -671,7 +671,7 @@ export async function healthCheck() {
     await prisma.$queryRaw`SELECT 1`;
     return true;
   } catch (err) {
-    logger.error({ err }, "❌ DB health check failed");
+    logger.error({ err }, "DB health check failed");
     return false;
   }
 }
@@ -3009,10 +3009,10 @@ app.use("/api/v1/products", productsRouter);
 
 **Without Tests:**
 
-- ❌ Fear of breaking things when refactoring
-- ❌ Manual testing after every change
-- ❌ Bugs discovered in production
-- ❌ Hard to onboard new developers
+- Fear of breaking things when refactoring
+- Manual testing after every change
+- Bugs discovered in production
+- Hard to onboard new developers
 
 **With Tests:**
 
@@ -4347,7 +4347,7 @@ await prisma.user.findMany({
   where: { email: userInput },
 });
 
-// ❌ UNSAFE: Raw SQL with string concatenation
+// UNSAFE: Raw SQL with string concatenation
 await prisma.$queryRawUnsafe(`SELECT * FROM users WHERE email = '${userInput}'`);
 ```
 
@@ -4514,9 +4514,9 @@ A: Prioritize:
 
 Skip:
 
-- ❌ Trivial getters/setters
-- ❌ Framework code (Express already tested)
-- ❌ External libraries
+- Trivial getters/setters
+- Framework code (Express already tested)
+- External libraries
 
 **Q: How do I test code that calls external APIs?**
 
