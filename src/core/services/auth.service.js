@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { UnauthorizedError, NotFoundError } from "../errors/httpErrors.js";
 import { Status } from "@prisma/client";
-export function makeAuthService({ userRepository, env, logger }) {
+export function makeAuthService({ userRepository, rbacRepository, env, logger }) {
   return {
     async login({ username, password }) {
       const user = await userRepository.findByUsernameForAuth(username);
@@ -26,7 +26,7 @@ export function makeAuthService({ userRepository, env, logger }) {
           userId: user.id,
           role: user.role,
           username: user.username,
-          refreshVersion: user.refreshVersion,
+          userVersion: user.userVersion,
         },
         env.JWT_SECRET,
         {
@@ -34,17 +34,25 @@ export function makeAuthService({ userRepository, env, logger }) {
         }
       );
 
-      const refreshToken = jwt.sign({ userId: user.id }, env.JWT_REFRESH_SECRET, {
-        expiresIn: env.JWT_REFRESH_EXPIRES_IN,
-      });
+      const refreshToken = jwt.sign(
+        {
+          userId: user.id,
+          refreshTokenVersion: user.refreshTokenVersion,
+        },
+        env.JWT_REFRESH_SECRET,
+        {
+          expiresIn: env.JWT_REFRESH_EXPIRES_IN,
+        }
+      );
 
-      // Hash refresh token before storing
       const refreshTokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
 
       await userRepository.update(user.id, {
         refreshTokenHash,
         lastLoginAt: new Date(),
       });
+
+      const permissions = await rbacRepository.getUserPermissions(user.id);
 
       logger.info({ userId: user.id }, "User logged in");
 
@@ -57,7 +65,42 @@ export function makeAuthService({ userRepository, env, logger }) {
           username: user.username,
           name: user.name,
           role: user.role,
+
+          permissions: permissions.map((p) => p.code),
         },
+      };
+    },
+
+    /**
+     * Get current user details with fresh permissions
+     * Call this endpoint when: app loads, after token refresh, periodically
+     */
+    async getCurrentUser({ userId }) {
+      const user = await userRepository.findById(userId);
+      if (!user || user.status !== "ACTIVE") {
+        throw new UnauthorizedError("User not found or inactive");
+      }
+
+      // Get fresh permissions from database
+      const permissions = await rbacRepository.getUserPermissions(userId);
+      logger.info(
+        {
+          userId,
+          permissionCount: permissions.length,
+          permissions: permissions.map((p) => p.code),
+        },
+        "User permissions fetched"
+      );
+      return {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        name: user.name,
+        role: user.role,
+        status: user.status,
+        emailVerifiedAt: user.emailVerifiedAt,
+        profilePictureUrl: user.profilePictureUrl,
+        permissions: permissions.map((p) => p.code),
       };
     },
 
@@ -74,15 +117,29 @@ export function makeAuthService({ userRepository, env, logger }) {
         throw new UnauthorizedError("Invalid refresh token");
       }
 
+      if (decoded.refreshTokenVersion !== user.refreshTokenVersion) {
+        logger.warn({ userId: user.id }, "Refresh token version mismatch - possible replay attack");
+        throw new UnauthorizedError("Invalid refresh token");
+      }
+
       const hashedToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
 
       if (user.refreshTokenHash !== hashedToken) {
         throw new UnauthorizedError("Invalid refresh token");
       }
 
-      const newAccessToken = jwt.sign({ userId: user.id, role: user.role }, env.JWT_SECRET, {
-        expiresIn: env.JWT_EXPIRES_IN,
-      });
+      const newAccessToken = jwt.sign(
+        {
+          userId: user.id,
+          role: user.role,
+          username: user.username,
+          userVersion: user.userVersion,
+        },
+        env.JWT_SECRET,
+        {
+          expiresIn: env.JWT_EXPIRES_IN,
+        }
+      );
 
       return { accessToken: newAccessToken };
     },
@@ -92,6 +149,42 @@ export function makeAuthService({ userRepository, env, logger }) {
         refreshTokenHash: null,
       });
       logger.info({ userId }, "User logged out");
+    },
+
+    /**
+     * Invalidate all user sessions (both access and refresh tokens)
+     * Call this when: role changes, permissions change, account compromised
+     */
+    async invalidateAllSessions({ userId }) {
+      const user = await userRepository.findById(userId);
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      await userRepository.update(userId, {
+        userVersion: user.userVersion + 1, // Invalidate all access tokens
+        refreshTokenVersion: user.refreshTokenVersion + 1, // Invalidate all refresh tokens
+        refreshTokenHash: null, // Clear stored refresh token
+      });
+
+      logger.info({ userId }, "All user sessions invalidated");
+    },
+
+    /**
+     * Invalidate only access tokens (user needs to refresh to get new role/permissions)
+     * Call this when: role changes, permissions change (less disruptive than full logout)
+     */
+    async invalidateAccessTokens({ userId }) {
+      const user = await userRepository.findById(userId);
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      await userRepository.update(userId, {
+        userVersion: user.userVersion + 1, // Invalidate all access tokens
+      });
+
+      logger.info({ userId }, "User access tokens invalidated");
     },
   };
 }

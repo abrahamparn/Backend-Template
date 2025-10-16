@@ -9,14 +9,14 @@ export default {
 
       const result = await authService.login(req.body);
 
-      // Set refresh token in HTTP-only cookie
+      //TODO : We can put this into utility and inject it
       res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true, // Prevents JavaScript access (XSS protection)
-        secure: env.NODE_ENV === "production" || env.COOKIE_SECURE, // HTTPS only in production
-        sameSite: env.NODE_ENV === "production" ? "strict" : "lax", // CSRF protection
-        maxAge: parseExpiryToMs(env.JWT_REFRESH_EXPIRES_IN), // Cookie expiration
-        path: "/api/v1/auth", // Only send cookie to auth endpoints
-        domain: env.COOKIE_DOMAIN, // Optional: for subdomain support
+        httpOnly: true,
+        secure: env.NODE_ENV === "production" || env.COOKIE_SECURE,
+        sameSite: env.NODE_ENV === "production" ? "strict" : "lax",
+        maxAge: parseExpiryToMs(env.JWT_REFRESH_EXPIRES_IN),
+        path: "/api/v1/auth",
+        domain: env.COOKIE_DOMAIN,
       });
 
       // Return only access token and user info (no refresh token in response)
@@ -68,6 +68,27 @@ export default {
       });
 
       res.status(200).json({ success: true, message: "Logged out successfully" });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Get current user with fresh permissions
+   * This is called by frontend to:
+   * 1. Load user data on app startup
+   * 2. Refresh permissions after admin changes role
+   * 3. Periodically check for permission updates
+   */
+  async me(req, res, next) {
+    try {
+      const authService = req.scope.resolve("authService");
+      const user = await authService.getCurrentUser({ userId: req.user.userId });
+
+      res.status(200).json({
+        success: true,
+        data: user,
+      });
     } catch (error) {
       next(error);
     }

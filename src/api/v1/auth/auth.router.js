@@ -173,4 +173,57 @@ router.post("/refresh", validate(refreshTokenSchema), authController.refreshToke
  */
 router.post("/logout", authMiddleware, authController.logout);
 
+/**
+ * @swagger
+ * /api/v1/auth/me:
+ *   get:
+ *     summary: Get current user with permissions
+ *     description: Returns current user details with fresh permissions list for UI control
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     email:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         priority:
+ *                           type: integer
+ *                     status:
+ *                       type: string
+ *                     permissions:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["users:view", "assets:create", "posts:publish"]
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get("/me", authMiddleware, authController.me);
+
 export { router as authRouter };

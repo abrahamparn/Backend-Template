@@ -15,7 +15,9 @@ import { authLimiter, apiLimiter } from "./api/middleware/ratelimit.middleware.j
 import { healthRouter } from "./api/v1/system/health.router.js";
 
 const app = express();
+app.set("trust proxy", 1); // if behind a proxy/CDN
 
+// Swagger UI
 app.use(
   "/api-docs",
   swaggerUi.serve,

@@ -1,5 +1,5 @@
 import { ZodError } from "zod";
-import { AppError } from "../../core/errors/httpErrors.js"; // your helper (name as you wish)
+import { ValidationError } from "../../core/errors/httpErrors.js";
 
 /**
  * validate(schema, opts)
@@ -24,7 +24,6 @@ export const validate = (schema, opts = {}) => {
       if (schema.shape.query !== undefined) input.query = req.query;
       if (schema.shape.params !== undefined) input.params = req.params;
     } else {
-      // Fallback: assume full envelope
       input.body = req.body;
       input.query = req.query;
       input.params = req.params;
@@ -33,7 +32,6 @@ export const validate = (schema, opts = {}) => {
     const result = await schema.safeParseAsync(input);
 
     if (result.success) {
-      // expose parsed values without surprising others
       req.validated = result.data;
       if (assign) {
         if (result.data.body !== undefined) req.body = result.data.body;
@@ -60,14 +58,11 @@ export const validate = (schema, opts = {}) => {
       return base;
     });
 
-    // Bubble to your centralized error handler
-    return next(
-      new AppError("Validation Error", {
-        statusCode,
-        code: "VALIDATION_ERROR",
-        isOperational: true,
-        details,
-      })
-    );
+    // Create validation error and attach details
+    const validationError = new ValidationError("Validation failed");
+    validationError.details = details;
+    validationError.statusCode = statusCode; // Use custom statusCode if provided
+
+    return next(validationError);
   };
 };

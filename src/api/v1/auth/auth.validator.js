@@ -7,7 +7,6 @@ export const loginSchema = z.object({
   }),
 });
 
-// No body validation needed - refresh token comes from cookie
 export const refreshTokenSchema = z.object({
   body: z.object({}).optional(),
 });

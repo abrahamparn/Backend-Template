@@ -19,8 +19,13 @@ model User {
   profilePictureUrl String?   @map("profile_picture_url")
   phoneNumber       String?   @map("phone_number")
   passwordHash      String    @map("password_hash")
-  role              Role      @default(USER)
   status            Status    @default(ACTIVE)
+
+
+  // RBAC relation
+  roleId           String    @map("role_id")
+  role             Role      @relation(fields: [roleId], references: [id])
+  
 
   // Timestamps
   createdAt         DateTime  @default(now()) @map("created_at")
@@ -30,7 +35,8 @@ model User {
 
   // Auth & Versioning
   refreshTokenHash    String?   @unique @map("refresh_token_hash")
-  refreshTokenVersion Int       @default(0) @map("refresh_token_version") // Renamed for clarity
+  refreshTokenVersion Int       @default(0) @map("refresh_token_version") // For refresh token invalidation
+  userVersion         Int       @default(0) @map("user_version") // For access token invalidation on role/permission changes
 
   // OTP
   otpCode      String?   @map("otp_code")
@@ -59,11 +65,100 @@ model User {
   // Relation to logs ABOUT this user
   logsAboutUser UserLog[] @relation("LogsAboutTargetUser")
 
+
+  userPermissions  UserPermission[]
+
+
   @@map("users")
   @@index([email])
   @@index([username])
   @@index([status])
 }
+
+model Role {
+  id String @id @default(uuid())
+  name String @unique // ADMIN, EDITOR, VIEWER, etc.
+  description String?
+  isSystem Boolean @default(false) // Prevent deletion of core roles
+  priority Int @default(0) // For role hierarchy (higher = more power)
+
+  users User[]
+  permissions RolePermission[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+
+  @@map("roles")
+  @@index([name])
+  @@index([priority])
+}
+
+model Permission{
+  id          String   @id @default(uuid())
+  resource    String   // "assets", "invoices", "posts", etc.
+  action      String   // "create", "read", "update", "delete", "approve", etc.
+  code        String   @unique  // "assets:create", "invoices:approve"
+
+
+  // Metadata (for flexibility)
+  description String?
+  category    String?  // "content", "financial", "system", etc.
+  
+  roles       RolePermission[]
+  users       UserPermission[]
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@unique([resource, action])
+  @@map("permissions")
+  @@index([code])
+  @@index([resource])
+  @@index([category])
+}
+
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+  
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime   @default(now()) @map("created_at")
+  
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+
+model UserPermission {
+  id           String     @id @default(uuid())
+  userId       String     @map("user_id")
+  permissionId String     @map("permission_id")
+  
+  granted      Boolean    @default(true)  // true = grant, false = revoke
+  grantedBy    String?    @map("granted_by")
+  reason       String?
+  expiresAt    DateTime?  @map("expires_at")
+  
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  
+  @@unique([userId, permissionId])
+  @@map("user_permissions")
+  @@index([userId])
+  @@index([permissionId])
+}
+
+
 
 // UserLog model with proper relations and structure
 model UserLog {
@@ -83,12 +178,6 @@ model UserLog {
   createdAt   DateTime       @default(now()) @map("created_at")
 
   @@map("user_logs")
-}
-
-enum Role {
-  USER
-  ADMIN
-  SUPER_ADMIN
 }
 
 enum Status {

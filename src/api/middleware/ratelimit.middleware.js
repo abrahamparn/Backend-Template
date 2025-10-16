@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { env } from "../../config/index.js";
 
 /**
@@ -6,20 +6,23 @@ import { env } from "../../config/index.js";
  * Stricter limits to prevent brute force attacks
  */
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per window
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   message: {
     success: false,
     error: "Too many authentication attempts. Please try again in 15 minutes.",
   },
-  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
-  legacyHeaders: false, // Disable `X-RateLimit-*` headers
-  skipSuccessfulRequests: false, // Count successful requests
-  skipFailedRequests: false, // Count failed requests
-  // Custom key generator (optional) - use IP by default
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  skipFailedRequests: false,
   keyGenerator: (req) => {
-    // You could also use req.body.username to limit per username
-    return req.ip;
+    if (req.user?.id) return `uid:${req.user.id}`;
+
+    const u = (req.body?.username || "").toLowerCase();
+    if (u) return `login:${u}:${ipKeyGenerator(req.ip)}`;
+
+    return ipKeyGenerator(req.ip); // IPv6-safe
   },
   handler: (req, res) => {
     res.status(429).json({
@@ -35,8 +38,8 @@ export const authLimiter = rateLimit({
  * Applied to all API routes
  */
 export const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: env.NODE_ENV === "production" ? 100 : 1000, // More lenient in dev
+  windowMs: 60 * 1000, // 15 minutes
+  max: env.NODE_ENV === "production" ? 600 : 5000, // More lenient in dev
   message: {
     success: false,
     error: "Too many requests. Please try again later.",
@@ -58,8 +61,8 @@ export const apiLimiter = rateLimit({
  * (e.g., password reset, email verification)
  */
 export const strictLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // 3 attempts per hour
+  windowMs: 60 * 60 * 1000,
+  max: 3,
   message: {
     success: false,
     error: "Too many attempts. Please try again in 1 hour.",
@@ -81,8 +84,8 @@ export const strictLimiter = rateLimit({
  * Prevents abuse of upload endpoints
  */
 export const uploadLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 uploads per 15 minutes
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   message: {
     success: false,
     error: "Too many upload requests. Please try again later.",

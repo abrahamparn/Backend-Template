@@ -51,7 +51,7 @@ const envSchema = z.object({
     .optional()
     .transform((val) => val === "true"),
 
-  //SHUTDOWN_TIMEOUT: z.string().default("10000").transform(Number),
+  SHUTDOWN_TIMEOUT: z.string().default("10000").transform(Number),
 });
 
 const _env = envSchema.safeParse(process.env);

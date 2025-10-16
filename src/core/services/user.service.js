@@ -68,6 +68,16 @@ export function makeUserService({ userRepository, env, logger, mailerService }) 
         delete data.password;
       }
 
+      // CRITICAL: If role is being changed, increment userVersion to invalidate existing JWTs
+      // This forces the user to re-login and get new JWT with updated role/permissions
+      if (data.roleId && data.roleId !== user.roleId) {
+        data.userVersion = user.userVersion + 1;
+        logger.info(
+          { userId: id, oldRole: user.roleId, newRole: data.roleId },
+          "User role changed - invalidating access tokens"
+        );
+      }
+
       return userRepository.update(id, data);
     },
 

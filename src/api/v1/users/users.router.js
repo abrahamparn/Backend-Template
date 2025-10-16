@@ -1,20 +1,109 @@
 import express from "express";
 import usersController from "./users.controller.js";
 import { authMiddleware } from "../../../infra/security/auth.middleware.js";
-import { authorize } from "../../middleware/authorization.middleware.js";
-import { Role } from "@prisma/client";
+import { checkPermission } from "../../middleware/rbac.middleware.js";
+
 const router = express.Router();
 
-//? if you want to move from this to RBAC.
-//? i need you to change the strings to database rbac but if you don't want it
-//? then use enum
-
+// All routes require authentication
 router.use(authMiddleware);
 
-router.get("/", usersController.getUsers);
-router.get("/:id", usersController.getUserById);
-router.post("/", authorize([Role.ADMIN, Role.SUPER_ADMIN]), usersController.createUser);
-router.patch("/:id", authorize(["ADMIN", "SUPER_ADMIN"]), usersController.updateUser);
-router.delete("/:id", authorize(["SUPER_ADMIN"]), usersController.deleteUser);
+/**
+ * @swagger
+ * /api/v1/users:
+ *   get:
+ *     summary: Get all users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *       403:
+ *         description: Insufficient permissions (requires users:view)
+ */
+router.get("/", checkPermission("users:view"), usersController.getUsers);
+
+/**
+ * @swagger
+ * /api/v1/users/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User details
+ *       403:
+ *         description: Insufficient permissions (requires users:view)
+ */
+router.get("/:id", checkPermission("users:view"), usersController.getUserById);
+
+/**
+ * @swagger
+ * /api/v1/users:
+ *   post:
+ *     summary: Create new user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: User created
+ *       403:
+ *         description: Insufficient permissions (requires users:create)
+ */
+router.post("/", checkPermission("users:create"), usersController.createUser);
+
+/**
+ * @swagger
+ * /api/v1/users/{id}:
+ *   patch:
+ *     summary: Update user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User updated
+ *       403:
+ *         description: Insufficient permissions (requires users:update)
+ */
+router.patch("/:id", checkPermission("users:update"), usersController.updateUser);
+
+/**
+ * @swagger
+ * /api/v1/users/{id}:
+ *   delete:
+ *     summary: Delete user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *       403:
+ *         description: Insufficient permissions (requires users:delete)
+ */
+router.delete("/:id", checkPermission("users:delete"), usersController.deleteUser);
 
 export { router as usersRouter };
