@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { UnauthorizedError, NotFoundError } from "../errors/httpErrors.js";
 import { Status } from "@prisma/client";
-export function makeAuthService({ userRepository, rbacRepository, env, logger }) {
+export function makeAuthService({ userRepository, authRepository, rbacRepository, env, logger }) {
   return {
     async login({ username, password }) {
       const user = await userRepository.findByUsernameForAuth(username);
@@ -76,7 +76,7 @@ export function makeAuthService({ userRepository, rbacRepository, env, logger })
      * Call this endpoint when: app loads, after token refresh, periodically
      */
     async getCurrentUser({ userId }) {
-      const user = await userRepository.findById(userId);
+      const user = await authRepository.findById(userId);
       if (!user || user.status !== "ACTIVE") {
         throw new UnauthorizedError("User not found or inactive");
       }
@@ -112,7 +112,7 @@ export function makeAuthService({ userRepository, rbacRepository, env, logger })
         throw new UnauthorizedError("Invalid refresh token");
       }
 
-      const user = await userRepository.findById(decoded.userId);
+      const user = await authRepository.findById(decoded.userId);
       if (!user || user.status !== "ACTIVE") {
         throw new UnauthorizedError("Invalid refresh token");
       }
@@ -156,7 +156,7 @@ export function makeAuthService({ userRepository, rbacRepository, env, logger })
      * Call this when: role changes, permissions change, account compromised
      */
     async invalidateAllSessions({ userId }) {
-      const user = await userRepository.findById(userId);
+      const user = await authRepository.findById(userId);
       if (!user) {
         throw new NotFoundError("User not found");
       }
@@ -175,7 +175,7 @@ export function makeAuthService({ userRepository, rbacRepository, env, logger })
      * Call this when: role changes, permissions change (less disruptive than full logout)
      */
     async invalidateAccessTokens({ userId }) {
-      const user = await userRepository.findById(userId);
+      const user = await authRepository.findById(userId);
       if (!user) {
         throw new NotFoundError("User not found");
       }
